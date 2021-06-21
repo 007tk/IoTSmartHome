@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+     <item
+         android:id="@+id/nav_home"
+         android:icon="@drawable/ic_home_black_24dp"
+         android:title="Home" ></item>
+
+    <item
+        android:id="@+id/nav_camera"
+        android:icon="@drawable/ic_videocam_black_24dp"
+        android:title="Live View" ></item>
+
+    <item
+        android:id="@+id/nav_alerts"
+        android:icon="@drawable/ic_add_alert_black_24dp"
+        android:title="Alerts" ></item>
+</menu>

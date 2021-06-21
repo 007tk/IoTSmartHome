@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "512568216204",
+    "firebase_url": "https://iotsmart-98978.firebaseio.com",
+    "project_id": "iotsmart-98978",
+    "storage_bucket": "iotsmart-98978.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:512568216204:android:dc9d8240a94d97ca",
+        "android_client_info": {
+          "package_name": "com.tikane.Appiot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "512568216204-mover8qgi5vqbfjbi9jpptr0mo103tk4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmSeOpfbVLun0dTX-V1r1LHs58wLQjuis"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "512568216204-mover8qgi5vqbfjbi9jpptr0mo103tk4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
