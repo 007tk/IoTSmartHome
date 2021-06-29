@@ -1,21 +1,14 @@
 package com.tikane.Appiot;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.Button;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,23 +23,36 @@ import static com.tikane.Appiot.App.CHANNEL_2_ID;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FirebaseDatabase fbdb;
-    private DatabaseReference mDatabase ;
+    //region Variables
+    private DatabaseReference mDatabase;
 
+    private Button motionSensorButton;
+    private Button fireSensorButton;
+    private Button gasSensorButton;
+    private Button faceRecognitionButton;
 
-    private Button camera1;
-    private Switch PIR;
-    private Switch fire;
-    private Switch GAS;
-    private TextView motionTxtV;
-    private TextView fireTxtV;
-    private TextView gasTxtV;
-    private String val;
-    private String val2;
-    private String val3;
-    private String buz;
+    private TextView motionSensorStatusTextView;
+    private TextView fireSensorStatusTextView;
+    private TextView gasSensorStatusTextView;
+
+    private String motionSensorValue;
+    private String motionSensorSwitch;
+    private String fireSensorValue;
+    private String fireSensorSwitch;
+    private String gasSensorValue;
+    private String gasSensorSwitch;
     private String CHANNEL_ID = "1";
+
+    private boolean isMotionSensorActive = false;
+    private boolean isFireSensorActive = false;
+    private boolean isGasSensorActive = false;
+
+    int white = Color.parseColor("#FFFFFF");
+    int blue = Color.parseColor("#023047");
+    int green = Color.parseColor("#8AC926");
+
     private NotificationManagerCompat notificationCompat;
+    //endregion
 
 
     @Override
@@ -54,49 +60,48 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-      //  creatNotificationChannel();
+        //createNotificationChannel();
         notificationCompat = NotificationManagerCompat.from(this);
-        //Buttons
 
 
-        //Switches
-        PIR = findViewById(R.id.switch_PIR);
-        fire = findViewById(R.id.FireSensor_Switch);
-        GAS = findViewById(R.id.switch_GAS);
+        //region Buttons
+        motionSensorButton = findViewById(R.id.motionSensorBtn);
+        fireSensorButton = findViewById(R.id.fireSensorBtn);
+        gasSensorButton = findViewById(R.id.GasSensorBtn);
+        faceRecognitionButton = findViewById(R.id.faceRecognitionStatusBtn);
+        //endregion
 
-        //TextViews
-        motionTxtV = findViewById(R.id.textView_Motion);
-        fireTxtV = findViewById(R.id.textView_fire);
+        //region TextViews
+        motionSensorStatusTextView = findViewById(R.id.motionSensorStatus);
+        fireSensorStatusTextView = findViewById(R.id.fireSensorStatus);
+        gasSensorStatusTextView = findViewById(R.id.gasSensorStatus);
+        //endregion
 
 
         //Set up firebase database....
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        /*onbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "On", Toast.LENGTH_LONG).show();
-
-                mDatabase.child("Sensor_Read").child("Buzzer").setValue("1");
-                results.setText("Alarm is ON!!!");
-            }
-        });*/
-
-
-
-
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //results.setText(dataSnapshot.getValue().toString());
-                val = dataSnapshot.child("Sensor_Read").child("PIR_M").getValue().toString();
-                val2 = dataSnapshot.child("Sensor_Read").child("Fire").getValue().toString();
-                val3 = dataSnapshot.child("Sensor_Read").child("GAS").getValue().toString();
 
-                togglePIR(val);
-                toggleFire(val2);
-                toggleGAS(val3);
-           }
+                //sensor readings
+                motionSensorValue = dataSnapshot.child("Sensor_Read").child("PIR_M").getValue().toString();
+                fireSensorValue = dataSnapshot.child("Sensor_Read").child("Fire").getValue().toString();
+                gasSensorValue = dataSnapshot.child("Sensor_Read").child("GAS").getValue().toString();
+
+                motionSensorSwitch = dataSnapshot.child("Sensor_Read").child("motionSensorSwitch").getValue().toString();
+                fireSensorSwitch = dataSnapshot.child("Sensor_Read").child("fireSensorSwitch").getValue().toString();
+                gasSensorSwitch = dataSnapshot.child("Sensor_Read").child("gasSensorSwitch").getValue().toString();
+
+
+                activateMotionSensor(motionSensorSwitch);
+                activateFireSensor(fireSensorSwitch);
+                activateGasSensor(gasSensorSwitch);
+                toggleMotionSensor(motionSensorValue);
+                toggleFire(fireSensorValue);
+            }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -107,14 +112,13 @@ public class MainActivity extends AppCompatActivity {
 
         //Open web for camera
 
+        //call functions
+
+
     }
 
-    public void togglePIR(String num)
-    {
-        if(num.equals("1"))
-        {
-            PIR.setChecked(true);
-
+    public void toggleMotionSensor(String num) {
+        if (num.equals("1")) {
             //Notification Builder
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.ic_one)
@@ -125,23 +129,17 @@ public class MainActivity extends AppCompatActivity {
                     .build();
             notificationCompat.notify(1, notification);
 
-            motionTxtV.setText("Motion Detected..!");
-        }
-        else if (num.equals("0"))
-        {
-            PIR.setChecked(false);
+            motionSensorStatusTextView.setText("Motion Detected!");
+        } else if (num.equals("0")) {
 
-            motionTxtV.setText("No motion detected.");
+            motionSensorStatusTextView.setText("No Motion Detected.");
         }
     }
 
-    public void toggleFire(String num)
-    {
-        if(num.equals("1"))
-        {
-            fire.setChecked(true);
+    public void toggleFire(String num) {
+        if (num.equals("1")) {
 
-            fireTxtV.setText("Fire detected..!");
+            fireSensorStatusTextView.setText("Fire Detected!");
 
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.ic_one)
@@ -151,27 +149,117 @@ public class MainActivity extends AppCompatActivity {
                     .build();
 
             notificationCompat.notify(2, notification);
+        } else if (num.equals("0")) {
 
-        }
-        else if (num.equals("0"))
-        {
-            fire.setChecked(false);
-
-            fireTxtV.setText("No fire detected.");
+            fireSensorStatusTextView.setText("No Fire Detected.");
         }
     }
 
-    public void toggleGAS(String num)
-    {
-        if(num.equals("1"))
-        {
-            GAS.setChecked(true);
-        }
-        else if(num.equals("0"))
-        {
-            GAS.setChecked(false);
+    public void activateMotionSensor(String m) {
+
+        if (m.equals("0")) {
+           // Toast.makeText(MainActivity.this, "0", Toast.LENGTH_LONG).show();
+            motionSensorButton.setText("Inactive");
+            isMotionSensorActive = false;
+            motionSensorButton.setBackgroundResource(R.drawable.button_border);
+            motionSensorButton.setTextColor(blue);
+        } else if (m.equals("1")) {
+          //  Toast.makeText(MainActivity.this, "1", Toast.LENGTH_LONG).show();
+            motionSensorButton.setText("Active");
+            motionSensorButton.setBackgroundColor(green);
+            motionSensorButton.setTextColor(white);
+            isMotionSensorActive = true;
         }
 
+        motionSensorButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+
+                if (isMotionSensorActive) {
+                    mDatabase.child("Sensor_Read").child("motionSensorSwitch").setValue(0);
+                    motionSensorButton.setText("Inactive");
+                    motionSensorButton.setBackgroundResource(R.drawable.button_border);
+                    motionSensorButton.setTextColor(blue);
+                    //motionSensorButton
+                }
+                else{
+                    mDatabase.child("Sensor_Read").child("motionSensorSwitch").setValue(1);
+                    motionSensorButton.setText("Active");
+                    motionSensorButton.setBackgroundColor(green);
+                    motionSensorButton.setTextColor(white);
+                }
+            }
+        });
+    }
+
+    public  void activateFireSensor(String f){
+
+        if (f.equals("0")) {
+           // Toast.makeText(MainActivity.this, "0", Toast.LENGTH_LONG).show();
+            fireSensorButton.setText("Inactive");
+            fireSensorButton.setBackgroundResource(R.drawable.button_border);
+            fireSensorButton.setTextColor(blue);
+            isFireSensorActive = false;
+        } else if (f.equals("1")) {
+           // Toast.makeText(MainActivity.this, "1", Toast.LENGTH_LONG).show();
+            fireSensorButton.setText("Active");
+            fireSensorButton.setBackgroundColor(green);
+            fireSensorButton.setTextColor(white);
+            isFireSensorActive = true;
+        }
+
+        fireSensorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if(isFireSensorActive){
+                    mDatabase.child("Sensor_Read").child("fireSensorSwitch").setValue(0);
+                    fireSensorButton.setText("InActive");
+                    fireSensorButton.setBackgroundResource(R.drawable.button_border);
+                    fireSensorButton.setTextColor(blue);
+                }
+                else {
+                    mDatabase.child("Sensor_Read").child("fireSensorSwitch").setValue(1);
+                    fireSensorButton.setText("Active");
+                    fireSensorButton.setBackgroundColor(green);
+                    fireSensorButton.setTextColor(white);
+                }
+            }
+        });
+    }
+
+    public void activateGasSensor(String g){
+        if (g.equals("0")) {
+            // Toast.makeText(MainActivity.this, "0", Toast.LENGTH_LONG).show();
+            gasSensorButton.setText("Inactive");
+            gasSensorButton.setBackgroundResource(R.drawable.button_border);
+            gasSensorButton.setTextColor(blue);
+            isGasSensorActive = false;
+        } else if (g.equals("1")) {
+            // Toast.makeText(MainActivity.this, "1", Toast.LENGTH_LONG).show();
+            gasSensorButton.setText("Active");
+            gasSensorButton.setBackgroundColor(green);
+            gasSensorButton.setTextColor(white);
+            isGasSensorActive = true;
+        }
+
+        gasSensorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if(isGasSensorActive){
+                    mDatabase.child("Sensor_Read").child("gasSensorSwitch").setValue(0);
+                    gasSensorButton.setText("InActive");
+                    gasSensorButton.setBackgroundResource(R.drawable.button_border);
+                    gasSensorButton.setTextColor(blue);
+                }
+                else {
+                    mDatabase.child("Sensor_Read").child("gasSensorSwitch").setValue(1);
+                    gasSensorButton.setText("Active");
+                    gasSensorButton.setBackgroundColor(green);
+                    gasSensorButton.setTextColor(white);
+                }
+            }
+        });
     }
 
 }
